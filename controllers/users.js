@@ -19,21 +19,21 @@ module.exports.login = (req, res, next) => {
       res.send({ token });
     })
     .catch((err) => {
-      next(err);
+      if (err.name !== 'UnauthorizedError') {
+        next(new ServerError(err.message));
+      } else {
+        next(err);
+      }
     });
-};
-
-module.exports.getUsers = (req, res, next) => {
-  User.find({})
-    .then((users) => res.send({ data: users }))
-    .catch((err) => next(new ServerError(err.message)));
 };
 
 module.exports.getCurrentUser = (req, res, next) => {
   User.findById(req.user._id)
-    .then((user) => {
-      if (user) {
-        res.send({ data: user });
+    .then((document) => {
+      if (document) {
+        const user = document.toObject();
+        delete user._id;
+        res.send({ user });
       } else {
         next(new NotFoundError('Пользователь не обнаружен'));
       }
@@ -43,44 +43,22 @@ module.exports.getCurrentUser = (req, res, next) => {
     });
 };
 
-module.exports.getUserById = (req, res, next) => {
-  User.findById(req.params.userId)
-    .then((user) => {
-      if (user) {
-        res.send({ data: user });
-      } else {
-        next(new NotFoundError('Пользователь не обнаружен'));
-      }
-    })
-    .catch((err) => {
-      if (err.name === 'CastError') {
-        next(new BadRequestError('Переданы неверные данные'));
-      } else {
-        next(new ServerError(err.message));
-      }
-    });
-};
-
 module.exports.createUser = (req, res, next) => {
   const {
-    name,
-    about,
-    avatar,
     email,
     password,
+    name,
   } = req.body;
   bcrypt.hash(password, 10)
     .then((hash) => User.create({
-      name,
-      about,
-      avatar,
       email,
       password: hash,
+      name,
     }))
     .then((document) => {
       const user = document.toObject();
       delete user.password;
-      res.send({ data: user });
+      res.send({ user });
     })
     .catch((err) => {
       if (err.name === 'ValidationError') {
@@ -94,41 +72,30 @@ module.exports.createUser = (req, res, next) => {
 };
 
 module.exports.updateUser = (req, res, next) => {
-  const { name, about } = req.body;
+  const { email, name } = req.body;
   const userId = req.user._id;
-  User.findByIdAndUpdate(userId, { name, about }, { new: true })
-    .then((user) => {
-      if (user) {
-        res.send({ data: user });
+  User.findOne({ email })
+    .then((data) => {
+      if (data) {
+        next(new ConflictError('Пользователь с такой почтой уже существует'));
       } else {
-        next(new NotFoundError('Пользователь не обнаружен'));
-      }
-    })
-    .catch((err) => {
-      if (err.name === 'ValidationError') {
-        next(new BadRequestError('Переданы неверные данные'));
-      } else {
-        next(new ServerError(err.message));
-      }
-    });
-};
-
-module.exports.updateAvatar = (req, res, next) => {
-  const { avatar } = req.body;
-  const userId = req.user._id;
-  User.findByIdAndUpdate(userId, { avatar }, { new: true })
-    .then((user) => {
-      if (user) {
-        res.send({ data: user });
-      } else {
-        next(new NotFoundError('Аватар не обнаружен'));
-      }
-    })
-    .catch((err) => {
-      if (err.name === 'ValidationError') {
-        next(new BadRequestError('Переданы неверные данные'));
-      } else {
-        next(new ServerError(err.message));
+        User.findByIdAndUpdate(userId, { email, name }, { new: true })
+          .then((document) => {
+            if (document) {
+              const user = document.toObject();
+              delete user._id;
+              res.send({ data: user });
+            } else {
+              next(new NotFoundError('Пользователь не найден.'));
+            }
+          })
+          .catch((err) => {
+            if (err.name === 'ValidationError') {
+              next(new BadRequestError('Переданы неверные данные'));
+            } else {
+              next(new ServerError(err.message));
+            }
+          });
       }
     });
 };

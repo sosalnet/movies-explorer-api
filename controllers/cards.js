@@ -1,12 +1,12 @@
 const ServerError = require('../errors/ServerError');
 const BadRequestError = require('../errors/BadRequestError');
 const NotFoundError = require('../errors/NotFoundError');
-const Card = require('../models/card');
+const Movie = require('../models/movie');
 const ForbiddenError = require('../errors/ForbiddenError');
 const HTTPError = require('../errors/HTTPError');
 
 module.exports.getCards = (req, res, next) => {
-  Card.find({})
+  Movie.find({})
     .then((cards) => res.send({ data: cards }))
     .catch((err) => next(new ServerError(err.message)));
 };
@@ -14,7 +14,7 @@ module.exports.getCards = (req, res, next) => {
 module.exports.createCard = (req, res, next) => {
   const owner = req.user._id;
   const { name, link } = req.body;
-  Card.create({ name, link, owner })
+  Movie.create({ name, link, owner })
     .then((cardDocument) => {
       const card = cardDocument.toObject();
       card.owner = { _id: req.user._id };
@@ -30,7 +30,7 @@ module.exports.createCard = (req, res, next) => {
 };
 
 module.exports.deleteCardById = (req, res, next) => {
-  Card.findById(req.params.cardId)
+  Movie.findById(req.params.cardId)
     .then((card) => {
       if (!card) {
         throw new NotFoundError('Карточка не обнаружена.');
@@ -57,7 +57,7 @@ module.exports.deleteCardById = (req, res, next) => {
 
 module.exports.likeCard = (req, res, next) => {
   const userId = req.user._id;
-  Card.findByIdAndUpdate(
+  Movie.findByIdAndUpdate(
     req.params.cardId,
     { $addToSet: { likes: userId } },
     { new: true },
@@ -80,7 +80,7 @@ module.exports.likeCard = (req, res, next) => {
 
 module.exports.dislikeCard = (req, res, next) => {
   const userId = req.user._id;
-  Card.findByIdAndUpdate(
+  Movie.findByIdAndUpdate(
     req.params.cardId,
     { $pull: { likes: userId } },
     { new: true },
