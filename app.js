@@ -15,24 +15,27 @@ const errorHandler = require('./middlewares/errorHandler');
 const rateLimiter = require('./middlewares/rateLimit');
 
 const { PORT = 3001, dbName = 'mongodb://localhost:27017/moviesdb' } = process.env;
-const config = dotenv.config({
-  path: path
-    .resolve(process.env.NODE_ENV === 'production' ? '.env' : '.env.common'),
-})
-  .parsed;
 
 const app = express();
 
 mongoose.set({ runValidators: true });
 mongoose.connect(dbName);
 
-app.use(cors({
-  origin: '*',
-  allowedHeaders: ['Content-Type', 'Authorization', 'localhost:3000'],
-}));
-app.options('*', cors());
-
 app.use(bodyParser.json());
+
+app.use(cors(
+  {
+    origin: '*',
+    allowedHeaders: ['Content-Type', 'Authorization'],
+  },
+));
+
+const config = dotenv.config({
+  path: path
+    .resolve(process.env.NODE_ENV === 'production' ? '.env' : '.env.common'),
+})
+  .parsed;
+
 app.set('config', config);
 app.use(requestLogger);
 app.use(helmet());
