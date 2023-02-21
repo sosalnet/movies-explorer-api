@@ -28,7 +28,7 @@ mongoose.connect(dbName);
 
 app.use(cors({
   origin: '*',
-  allowedHeaders: ['Content-Type', 'Authorization'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'localhost:3000'],
 }));
 app.options('*', cors());
 
