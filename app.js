@@ -26,7 +26,7 @@ app.use(bodyParser.json());
 app.use(cors(
   {
     origin: '*',
-    allowedHeaders: ['Content-Type', 'Authorization', 'http://localhost:3000'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
   },
 ));
 app.options('*', cors());
