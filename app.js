@@ -26,9 +26,10 @@ app.use(bodyParser.json());
 app.use(cors(
   {
     origin: '*',
-    allowedHeaders: ['Content-Type', 'Authorization'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'http://localhost:3000'],
   },
 ));
+app.options('*', cors());
 
 const config = dotenv.config({
   path: path
