@@ -30,6 +30,7 @@ app.use(cors({
   origin: '*',
   allowedHeaders: ['Content-Type', 'Authorization'],
 }));
+app.options('*', cors());
 
 app.use(bodyParser.json());
 app.set('config', config);
