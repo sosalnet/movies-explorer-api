@@ -1,7 +1,7 @@
 const ServerError = require('../errors/ServerError');
 const BadRequestError = require('../errors/BadRequestError');
 const NotFoundError = require('../errors/NotFoundError');
-const Movie = require('../models/movie');
+const { Movie } = require('../models/movie');
 const ForbiddenError = require('../errors/ForbiddenError');
 const HTTPError = require('../errors/HTTPError');
 
